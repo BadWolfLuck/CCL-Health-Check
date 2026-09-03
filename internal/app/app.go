@@ -22,19 +22,16 @@ const (
 func Run() {
 	a := fyneapp.NewWithID(appID)
 
-	cfg, err := config.Load()
+	_, err := config.Load()
 	if err != nil {
-		// Ainda não há uma tela de erro dedicada; por enquanto seguimos
-		// com a configuração padrão e apenas registramos no log.
 		fyne.LogError("falha ao carregar configuração, usando padrão", err)
-		cfg = config.Default()
 	}
 
 	w := a.NewWindow(appTitle)
 	w.Resize(fyne.NewSize(winWidth, winHeight))
 	w.SetMaster()
 
-	w.SetContent(screens.NewHome(w, cfg))
+	w.SetContent(screens.NewServices(w))
 
 	w.ShowAndRun()
 }
