@@ -1,4 +1,6 @@
-# Meu Projeto
+# CCL-Health-Check
+
+Repositório oficial: https://github.com/BadWolfLuck/CCL-Health-Check
 
 Aplicação desktop para Windows 11, desenvolvida em Go utilizando [Fyne](https://fyne.io/) para a interface gráfica.
 
@@ -11,13 +13,13 @@ Aplicação desktop para Windows 11, desenvolvida em Go utilizando [Fyne](https:
 
 ```bash
 go mod tidy
-go run ./cmd/meu-projeto
+go run ./cmd/CCL-Health-Check
 ```
 
 ## Estrutura do projeto
 
 ```
-cmd/meu-projeto/     -> ponto de entrada (main.go)
+cmd/CCL-Health-Check/     -> ponto de entrada (main.go)
 internal/app/        -> inicialização da aplicação (janela, tema, config)
 internal/ui/         -> telas (screens), componentes (widgets) e tema visual
 internal/config/     -> leitura/escrita de configuração local (JSON)

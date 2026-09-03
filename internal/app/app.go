@@ -6,19 +6,19 @@ import (
 	"fyne.io/fyne/v2"
 	fyneapp "fyne.io/fyne/v2/app"
 
-	"github.com/SEU_USUARIO/meu-projeto/internal/config"
-	"github.com/SEU_USUARIO/meu-projeto/internal/ui/screens"
+	"github.com/BadWolfLuck/CCL-Health-Check/internal/config"
+	"github.com/BadWolfLuck/CCL-Health-Check/internal/ui/screens"
 )
 
 const (
-	appID     = "com.seudominio.meuprojeto"
-	appTitle  = "Meu Projeto"
+	appID     = "com.badwolfluck.cclhealthcheck"
+	appTitle  = "CCL-Health-Check"
 	winWidth  = 900
 	winHeight = 600
 )
 
 // Run cria e inicia a aplicação. É a única função exportada deste
-// pacote e é chamada diretamente por cmd/meu-projeto/main.go.
+// pacote e é chamada diretamente por cmd/CCL-Health-Check/main.go.
 func Run() {
 	a := fyneapp.NewWithID(appID)
 

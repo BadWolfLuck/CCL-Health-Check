@@ -10,8 +10,8 @@ Write-Host "Baixando dependências..."
 go mod tidy
 
 Write-Host "Empacotando aplicação para Windows..."
-Push-Location cmd/meu-projeto
-fyne package -os windows -icon ../../build/windows/icon.ico -name "Meu Projeto"
+Push-Location cmd/CCL-Health-Check
+fyne package -os windows -icon ../../build/windows/icon.ico -name "CCL-Health-Check"
 Pop-Location
 
-Write-Host "Build concluído. Executável gerado em cmd/meu-projeto/"
+Write-Host "Build concluído. Executável gerado em cmd/CCL-Health-Check/"

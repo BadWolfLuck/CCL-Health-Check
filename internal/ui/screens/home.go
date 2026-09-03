@@ -10,7 +10,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/SEU_USUARIO/meu-projeto/internal/config"
+	"github.com/BadWolfLuck/CCL-Health-Check/internal/config"
 )
 
 // NewHome monta a tela inicial da aplicação. Recebe a janela (para

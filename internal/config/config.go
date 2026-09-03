@@ -15,7 +15,7 @@ const fileName = "config.json"
 // Config representa as preferências persistentes do usuário.
 // Adicione novos campos aqui conforme o app crescer.
 type Config struct {
-	Theme        string `json:"theme"`         // "light", "dark" ou "system"
+	Theme        string `json:"theme"` // "light", "dark" ou "system"
 	WindowWidth  int    `json:"window_width"`
 	WindowHeight int    `json:"window_height"`
 }
@@ -38,7 +38,7 @@ func path() (string, error) {
 		return "", err
 	}
 
-	appDir := filepath.Join(dir, "meu-projeto")
+	appDir := filepath.Join(dir, "CCL-Health-Check")
 	if err := os.MkdirAll(appDir, 0o755); err != nil {
 		return "", err
 	}
