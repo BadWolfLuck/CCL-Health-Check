@@ -1,10 +1,10 @@
 module github.com/BadWolfLuck/CCL-Health-Check
 
-go 1.22
+go 1.25.0
 
 require (
 	fyne.io/fyne/v2 v2.7.4
-	golang.org/x/sys v0.30.0
+	golang.org/x/sys v0.47.0
 )
 
 require (

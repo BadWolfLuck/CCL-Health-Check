@@ -7,6 +7,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/BadWolfLuck/CCL-Health-Check/internal/domain"
@@ -25,8 +26,8 @@ const pollInterval = 5 * time.Second
 // WindowsServiceName (nome interno do serviço no Windows — o mesmo
 // que aparece em services.msc na coluna "Nome do serviço", ou via
 // `sc query <nome>` no terminal). Nenhuma outra alteração de código é
-// necessária: a linha na tela e o polling são criados automaticamente
-// para cada item desta lista.
+// necessária: a linha na tela, os botões e o polling são criados
+// automaticamente para cada item desta lista.
 var monitoredServices = []domain.MonitoredService{
 	{
 		DisplayName:        "FortiNAC Agent",
@@ -39,6 +40,14 @@ var monitoredServices = []domain.MonitoredService{
 	{
 		DisplayName:        "Rapid7 Agent",
 		WindowsServiceName: "ir_agent",
+	},
+	{
+		DisplayName:        "Spooler de Impressão",
+		WindowsServiceName: "Spooler",
+	},
+	{
+		DisplayName:        "Windows Update",
+		WindowsServiceName: "wuauserv",
 	},
 	{
 		DisplayName:        "Trend Micro Unauthorized Change Prevention Service",
@@ -60,28 +69,23 @@ var monitoredServices = []domain.MonitoredService{
 		DisplayName:        "TrendAI™ Vulnerability Protection Service",
 		WindowsServiceName: "iVPAgent",
 	},
-	{
-		DisplayName:        "Spooler de Impressão",
-		WindowsServiceName: "Spooler",
-	},
-	{
-		DisplayName:        "Windows Update",
-		WindowsServiceName: "wuauserv",
-	},
 }
 
 // serviceRow agrupa os componentes de UI de uma linha da lista, para
-// que o loop de polling saiba qual bolinha e qual label atualizar.
+// que o loop de polling e os botões de controle saibam qual bolinha,
+// label e conjunto de botões atualizar.
 type serviceRow struct {
-	service domain.MonitoredService
-	dot     *uiwidgets.StatusDot
-	label   *widget.Label
+	service  domain.MonitoredService
+	dot      *uiwidgets.StatusDot
+	label    *widget.Label
+	controls *uiwidgets.ServiceControls
+	window   fyne.Window
 }
 
 // NewServices monta a tela de monitoramento de serviços. Cada serviço
 // em monitoredServices vira uma linha com bolinha de status + nome +
-// descrição textual do status atual. Um polling em background atualiza
-// todas as linhas a cada pollInterval.
+// descrição textual do status + botões de controle. Um polling em
+// background atualiza todas as linhas a cada pollInterval.
 func NewServices(w fyne.Window) fyne.CanvasObject {
 	title := widget.NewLabelWithStyle(
 		"Monitoramento de serviços",
@@ -93,7 +97,7 @@ func NewServices(w fyne.Window) fyne.CanvasObject {
 	rowsContainer := container.NewVBox()
 
 	for _, svc := range monitoredServices {
-		row := newServiceRow(svc)
+		row := newServiceRow(w, svc)
 		rows = append(rows, row)
 		rowsContainer.Add(row.render())
 	}
@@ -113,18 +117,28 @@ func NewServices(w fyne.Window) fyne.CanvasObject {
 	return content
 }
 
-// newServiceRow cria os widgets de uma linha (bolinha + nome + status)
-// para o serviço informado.
-func newServiceRow(svc domain.MonitoredService) *serviceRow {
-	return &serviceRow{
+// newServiceRow cria os widgets de uma linha (bolinha + nome + status
+// + botões) para o serviço informado. window é necessária para exibir
+// diálogos de erro em caso de falha ao controlar o serviço.
+func newServiceRow(w fyne.Window, svc domain.MonitoredService) *serviceRow {
+	row := &serviceRow{
 		service: svc,
 		dot:     uiwidgets.NewStatusDot(),
 		label:   widget.NewLabel(domain.StatusPending.String()),
+		window:  w,
 	}
+
+	row.controls = uiwidgets.NewServiceControls(
+		func() { row.runAction("iniciar", servicemon.Start) },
+		func() { row.runAction("parar", servicemon.Stop) },
+		func() { row.runAction("reiniciar", servicemon.Restart) },
+	)
+
+	return row
 }
 
 // render monta o layout horizontal de uma linha: bolinha, nome do
-// serviço e descrição textual do status.
+// serviço, descrição textual do status e os botões de controle.
 func (r *serviceRow) render() fyne.CanvasObject {
 	name := widget.NewLabel(r.service.DisplayName)
 	name.TextStyle = fyne.TextStyle{Bold: true}
@@ -134,7 +148,56 @@ func (r *serviceRow) render() fyne.CanvasObject {
 		name,
 		widget.NewLabel("—"),
 		r.label,
+		layoutSpacer(),
+		r.controls,
 	)
+}
+
+// layoutSpacer cria um espaço flexível entre o status e os botões,
+// empurrando os botões para a direita da linha.
+func layoutSpacer() fyne.CanvasObject {
+	return widget.NewLabel(" ")
+}
+
+// runAction executa uma ação de controle (Start/Stop/Restart) em uma
+// goroutine separada, para não travar a interface durante a chamada
+// bloqueante ao Service Control Manager. Em caso de erro, um diálogo
+// é exibido ao usuário na thread de UI. Ao final, o status da linha é
+// atualizado imediatamente, sem esperar o próximo ciclo de polling.
+func (r *serviceRow) runAction(actionLabel string, action func(string) error) {
+	// Desabilita os botões imediatamente para evitar cliques
+	// duplicados enquanto a ação está em andamento.
+	fyne.Do(func() {
+		r.controls.SetStatus(domain.StatusRestarting)
+		r.label.SetText("Executando: " + actionLabel + "...")
+	})
+
+	go func() {
+		err := action(r.service.WindowsServiceName)
+		if err != nil {
+			fyne.LogError(fmt.Sprintf("%s serviço %q", actionLabel, r.service.WindowsServiceName), err)
+			fyne.Do(func() {
+				dialog.ShowError(
+					fmt.Errorf("não foi possível %s o serviço %q: %w", actionLabel, r.service.DisplayName, err),
+					r.window,
+				)
+			})
+		}
+
+		// Independentemente de sucesso ou falha, consultamos o status
+		// real para refletir o estado atual do serviço na tela.
+		status, statusErr := servicemon.QueryStatus(r.service.WindowsServiceName)
+		if statusErr != nil {
+			fyne.LogError(fmt.Sprintf("consultar serviço %q após %s", r.service.WindowsServiceName, actionLabel), statusErr)
+			status = domain.StatusStopped
+		}
+
+		fyne.Do(func() {
+			r.dot.SetStatus(status)
+			r.label.SetText(status.String())
+			r.controls.SetStatus(status)
+		})
+	}()
 }
 
 // startPolling dispara uma goroutine que consulta todos os serviços
@@ -156,6 +219,7 @@ func startPolling(w fyne.Window, rows []*serviceRow) {
 			fyne.Do(func() {
 				row.dot.SetStatus(status)
 				row.label.SetText(status.String())
+				row.controls.SetStatus(status)
 			})
 		}
 	}
