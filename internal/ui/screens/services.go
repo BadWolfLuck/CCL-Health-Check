@@ -29,6 +29,38 @@ const pollInterval = 5 * time.Second
 // para cada item desta lista.
 var monitoredServices = []domain.MonitoredService{
 	{
+		DisplayName:        "FortiNAC Agent",
+		WindowsServiceName: "BNPagent",
+	},
+	{
+		DisplayName:        "Qualys Agent",
+		WindowsServiceName: "QualysAgent",
+	},
+	{
+		DisplayName:        "Rapid7 Agent",
+		WindowsServiceName: "ir_agent",
+	},
+	{
+		DisplayName:        "Trend Micro Unauthorized Change Prevention Service",
+		WindowsServiceName: "TMBMServer",
+	},
+	{
+		DisplayName:        "TrendAI Application Control Service",
+		WindowsServiceName: "TMiACAgentSvc",
+	},
+	{
+		DisplayName:        "TrendAI Endpoint Basecamp",
+		WindowsServiceName: "Trend Micro Endpoint Basecamp",
+	},
+	{
+		DisplayName:        "TrendAI Network Service",
+		WindowsServiceName: "tm_netsrv",
+	},
+	{
+		DisplayName:        "TrendAI™ Vulnerability Protection Service",
+		WindowsServiceName: "iVPAgent",
+	},
+	{
 		DisplayName:        "Spooler de Impressão",
 		WindowsServiceName: "Spooler",
 	},
