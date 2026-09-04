@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity
+    version="1.0.0.0"
+    processorArchitecture="*"
+    name="BadWolfLuck.CCLHealthCheck"
+    type="win32"
+  />
+  <description>CCL-Health-Check</description>
+
+  <!--
+    requireAdministrator faz o Windows exigir elevação (prompt de UAC)
+    sempre que o executável for iniciado, independentemente de como o
+    usuário der o duplo clique. Sem isso, o Service Control Manager
+    nega Start/Stop/Control em serviços do sistema com erro de acesso
+    negado (ERROR_ACCESS_DENIED).
+  -->
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    <security>
+      <requestedPrivileges>
+        <requestedExecutionLevel
+          level="requireAdministrator"
+          uiAccess="false"
+        />
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+
+  <!-- Declara compatibilidade explícita com Windows 10/11, evitando
+       que o app rode em modo de compatibilidade legado. -->
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
+    </application>
+  </compatibility>
+</assembly>
